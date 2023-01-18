@@ -12,6 +12,7 @@ use nix::fcntl::{splice, SpliceFFlags};
 use std::fs::File;
 #[cfg(target_os = "linux")]
 use std::os::unix::io::AsRawFd;
+use std::os::unix::process::ExitStatusExt;
 
 use crate::util::units::Second;
 use wall_clock_timer::WallClockTimer;
@@ -19,7 +20,7 @@ use wall_clock_timer::WallClockTimer;
 use std::io::Read;
 use std::process::{ChildStdout, Command, ExitStatus};
 
-use anyhow::Result;
+use anyhow::{bail, Result};
 
 #[cfg(not(windows))]
 #[derive(Debug, Copy, Clone)]
@@ -111,4 +112,27 @@ pub fn execute_and_measure(mut command: Command) -> Result<TimerResult> {
         time_system,
         status,
     })
+}
+
+pub fn execute_and_read_result(mut command: Command) -> Result<TimerResult> {
+    let child = command.spawn()?;
+    match child.stdout {
+        None => bail!("Couldn't read anything from the command's output"),
+        Some(mut output) => {
+            let mut out_str = String::new();
+            output.read_to_string(&mut out_str).unwrap();
+            let time = Second::from(
+                out_str
+                    .strip_suffix("\n")
+                    .unwrap_or(out_str.as_str())
+                    .parse::<f64>().map_err(|_| anyhow::Error::msg("failed to parse float from program output, make sure the only output written by the process is a decimal floating point number"))?,
+            );
+            Ok(TimerResult {
+                time_real: time,
+                time_user: 0.,
+                time_system: 0.,
+                status: ExitStatus::from_raw(0),
+            })
+        }
+    }
 }

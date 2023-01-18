@@ -281,6 +281,7 @@ fn build_command() -> Command {
                      '--output=pipe'.\n\n\
                      pipe: Feed the output through a pipe before discarding it.\n\n\
                      inherit: Don't redirect the output at all (same as '--show-output').\n\n\
+                     read-from: Use the output as the method of measurement. In this case, the output must be a single floating point value which will be interpreted as seconds by hyperfine.\n\n\
                      <FILE>: Write the output to the given file.",
                 ),
         )

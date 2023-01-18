@@ -124,6 +124,8 @@ pub enum CommandOutputPolicy {
 
     /// Show command output on the terminal
     Inherit,
+
+    ReadFrom,
 }
 
 impl Default for CommandOutputPolicy {
@@ -146,6 +148,7 @@ impl CommandOutputPolicy {
             }
 
             CommandOutputPolicy::Inherit => (Stdio::inherit(), Stdio::inherit()),
+            CommandOutputPolicy::ReadFrom => (Stdio::piped(), Stdio::piped()),
         };
 
         Ok(streams)
@@ -275,6 +278,7 @@ impl Options {
                 "null" => CommandOutputPolicy::Null,
                 "pipe" => CommandOutputPolicy::Pipe,
                 "inherit" => CommandOutputPolicy::Inherit,
+                "read-from" => CommandOutputPolicy::ReadFrom,
                 arg => {
                     let path = PathBuf::from(arg);
                     if path.components().count() <= 1 {

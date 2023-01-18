@@ -3,7 +3,7 @@ use std::process::{ExitStatus, Stdio};
 use crate::command::Command;
 use crate::options::{CmdFailureAction, CommandOutputPolicy, Options, OutputStyleOption, Shell};
 use crate::output::progress_bar::get_progress_bar;
-use crate::timer::{execute_and_measure, TimerResult};
+use crate::timer::{execute_and_measure, execute_and_read_result, TimerResult};
 use crate::util::randomized_environment_offset;
 use crate::util::units::Second;
 
@@ -47,8 +47,11 @@ fn run_command_and_measure_common(
         randomized_environment_offset::value(),
     );
 
-    let result = execute_and_measure(command)
-        .with_context(|| format!("Failed to run command '{}'", command_name))?;
+    let result = match command_output_policy {
+        CommandOutputPolicy::ReadFrom => execute_and_read_result(command)?,
+        _ => execute_and_measure(command)
+            .with_context(|| format!("Failed to run command '{}'", command_name))?,
+    };
 
     if command_failure_action == CmdFailureAction::RaiseError && !result.status.success() {
         bail!(
@@ -165,6 +168,14 @@ impl<'a> Executor for ShellExecutor<'a> {
 
     /// Measure the average shell spawning time
     fn calibrate(&mut self) -> Result<()> {
+        if self.options.command_output_policy == CommandOutputPolicy::ReadFrom {
+            self.shell_spawning_time = Some(TimingResult {
+                time_real: 0.0,
+                time_user: 0.0,
+                time_system: 0.0,
+            });
+            return Ok(());
+        }
         const COUNT: u64 = 50;
         let progress_bar = if self.options.output_style != OutputStyleOption::Disabled {
             Some(get_progress_bar(
