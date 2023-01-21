@@ -319,3 +319,14 @@ fn performs_all_benchmarks_in_parameter_scan() {
                 .and(predicate::str::contains("Benchmark 5: sleep 50").not()),
         );
 }
+
+#[test]
+fn can_measure_time_from_output() {
+    hyperfine()
+        .arg("--output")
+        .arg("read-from")
+        .arg("echo 5")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("5.000 s"));
+}
