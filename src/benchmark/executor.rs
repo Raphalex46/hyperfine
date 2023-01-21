@@ -168,6 +168,9 @@ impl<'a> Executor for ShellExecutor<'a> {
 
     /// Measure the average shell spawning time
     fn calibrate(&mut self) -> Result<()> {
+        // Shell spawning time is considered zero when using the output of the
+        // program as timing info (the shell spawning time doesn't matter since
+        // execution time is not measured by hyperfine but by the program itself)
         if self.options.command_output_policy == CommandOutputPolicy::ReadFrom {
             self.shell_spawning_time = Some(TimingResult {
                 time_real: 0.0,

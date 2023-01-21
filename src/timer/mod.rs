@@ -114,6 +114,7 @@ pub fn execute_and_measure(mut command: Command) -> Result<TimerResult> {
     })
 }
 
+/// Execute the given command and attempt to read the timing result from the output
 pub fn execute_and_read_result(mut command: Command) -> Result<TimerResult> {
     let child = command.spawn()?;
     match child.stdout {
