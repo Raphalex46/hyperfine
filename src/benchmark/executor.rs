@@ -48,7 +48,7 @@ fn run_command_and_measure_common(
     );
 
     let result = match command_output_policy {
-        CommandOutputPolicy::ReadFrom => execute_and_read_result(command)?,
+        CommandOutputPolicy::TimeFrom => execute_and_read_result(command)?,
         _ => execute_and_measure(command)
             .with_context(|| format!("Failed to run command '{}'", command_name))?,
     };
@@ -171,7 +171,7 @@ impl<'a> Executor for ShellExecutor<'a> {
         // Shell spawning time is considered zero when using the output of the
         // program as timing info (the shell spawning time doesn't matter since
         // execution time is not measured by hyperfine but by the program itself)
-        if self.options.command_output_policy == CommandOutputPolicy::ReadFrom {
+        if self.options.command_output_policy == CommandOutputPolicy::TimeFrom {
             self.shell_spawning_time = Some(TimingResult {
                 time_real: 0.0,
                 time_user: 0.0,

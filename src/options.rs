@@ -125,7 +125,7 @@ pub enum CommandOutputPolicy {
     /// Show command output on the terminal
     Inherit,
 
-    ReadFrom,
+    TimeFrom,
 }
 
 impl Default for CommandOutputPolicy {
@@ -148,7 +148,7 @@ impl CommandOutputPolicy {
             }
 
             CommandOutputPolicy::Inherit => (Stdio::inherit(), Stdio::inherit()),
-            CommandOutputPolicy::ReadFrom => (Stdio::piped(), Stdio::piped()),
+            CommandOutputPolicy::TimeFrom => (Stdio::piped(), Stdio::piped()),
         };
 
         Ok(streams)
@@ -273,12 +273,14 @@ impl Options {
 
         options.command_output_policy = if matches.get_flag("show-output") {
             CommandOutputPolicy::Inherit
+        } else if matches.get_flag("time-from-output") {
+            CommandOutputPolicy::TimeFrom
         } else if let Some(output) = matches.get_one::<String>("output").map(|s| s.as_str()) {
             match output {
                 "null" => CommandOutputPolicy::Null,
                 "pipe" => CommandOutputPolicy::Pipe,
                 "inherit" => CommandOutputPolicy::Inherit,
-                "read-from" => CommandOutputPolicy::ReadFrom,
+                "time-from" => CommandOutputPolicy::TimeFrom,
                 arg => {
                     let path = PathBuf::from(arg);
                     if path.components().count() <= 1 {

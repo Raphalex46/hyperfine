@@ -324,7 +324,7 @@ fn performs_all_benchmarks_in_parameter_scan() {
 fn can_measure_time_from_output() {
     hyperfine()
         .arg("--output")
-        .arg("read-from")
+        .arg("time-from")
         .arg("echo 5")
         .assert()
         .success()
